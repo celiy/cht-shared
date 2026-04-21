@@ -76,6 +76,31 @@ function reset(): void;
 
 ---
 
+### Escrevendo descrições em JSDoc
+
+- **Evite o uso de hífens longos (`—`) para separar frases/descrições**. Use frases diretas e claras.
+- **Não coloque descrições entre parênteses** a menos que seja absolutamente necessário para clarificar, como por exemplo, para parâmetros.
+
+Exemplo incorreto:
+```ts
+/**
+ * Description (does something special) — handles values.
+ */
+```
+
+Exemplo correto:
+```ts
+/**
+ * Description of what the function does.
+ * 
+ * @param value Description of the value parameter
+ */
+```
+
+Siga este modelo para manter clareza, profissionalismo e consistência em toda a base de código.
+
+---
+
 ## Vue: o que documentar
 
 | Área | Orientação |

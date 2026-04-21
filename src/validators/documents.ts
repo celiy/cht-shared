@@ -81,6 +81,11 @@ function validCalc(x: number, numbers: number[]) {
 
     for (let i = x; i >= 1; i--) {
         const n = slice[x - i];
+
+        if (n === undefined) {
+            continue;
+        }
+
         sum += n * factor--;
 
         if (factor < 2) {
