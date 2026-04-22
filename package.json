@@ -1,0 +1,8 @@
+{
+    "name": "cht-shared",
+    "private": true,
+    "version": "0.0.0",
+    "type": "module",
+    "description": "Código partilhado entre back-end e front-end (tipos, validadores e contratos).",
+    "sideEffects": false
+}
