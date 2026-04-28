@@ -10,10 +10,11 @@ export interface User {
     email: string;
     password: string;
     createdAt: Date;
+    modifiedAt: Date;
 }
 
 /** Representação pública: nunca sai o hash da senha no JSON. */
-export type PublicUser = Omit<User, 'password'>;
+export type PublicUser = Omit<User, "password">;
 
 /** Payload aceito por POST /api/users. */
 export interface CreateUserDTO {
