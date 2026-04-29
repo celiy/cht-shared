@@ -1,15 +1,15 @@
-import type { CreateUserDTO, UpdateUserDTO } from '../entities/User';
-import type { ApiErrorFields } from '../errors/ApiError';
-import validateEmail from './email';
-import validatePassword, { PASSWORD_MIN_LENGTH } from './password';
+import type { CreateUserDTO, UpdateUserDTO } from "../entities/User";
+import type { ApiErrorFields } from "../errors/ApiError";
+import validateEmail from "./email";
+import validatePassword, { PASSWORD_MIN_LENGTH } from "./password";
 
 export const NAME_MIN_LENGTH = 2;
 export const NAME_MAX_LENGTH = 120;
 const NAME_REGEX = /^[\p{L} .'-]+$/u;
 
 function validateName(name: string): string | null {
-    if (typeof name !== 'string' || name.trim().length === 0) {
-        return 'Nome é obrigatório';
+    if (typeof name !== "string" || name.trim().length === 0) {
+        return "Nome é obrigatório";
     }
 
     const trimmed = name.trim();
@@ -23,27 +23,27 @@ function validateName(name: string): string | null {
     }
 
     if (!NAME_REGEX.test(trimmed)) {
-        return 'O nome tem caracteres inválidos';
+        return "O nome tem caracteres inválidos";
     }
 
     return null;
 }
 
 function validateEmailField(email: string): string | null {
-    if (typeof email !== 'string' || email.trim().length === 0) {
-        return 'Email é obrigatório';
+    if (typeof email !== "string" || email.trim().length === 0) {
+        return "Email é obrigatório";
     }
 
     if (!validateEmail(email.trim())) {
-        return 'Email inválido';
+        return "Email inválido";
     }
 
     return null;
 }
 
 function validatePasswordField(password: string): string | null {
-    if (typeof password !== 'string' || password.length === 0) {
-        return 'Senha é obrigatória';
+    if (typeof password !== "string" || password.length === 0) {
+        return "Senha é obrigatória";
     }
 
     if (!validatePassword(password)) {
@@ -54,44 +54,62 @@ function validatePasswordField(password: string): string | null {
 }
 
 /**
- * Valida o payload de criação de usuário. Retorna um objeto com as mensagens de
- * erro por campo (`fields`) ou `null` quando tudo está ok. É o mesmo shape que
- * o errorHandler do backend responde em `error.fields`.
+ * Validate the create user payload. Returns an object with the error messages
+ * by field (`fields`) or `null` when everything is ok. It is the same shape as
+ * the errorHandler of the backend responds in `error.fields`.
  */
 export function validateCreateUser(dto: Partial<CreateUserDTO>): ApiErrorFields | null {
     const fields: ApiErrorFields = {};
 
-    const nameError = validateName(dto.name ?? '');
-    if (nameError) fields.name = nameError;
+    const nameError = validateName(dto.name ?? "");
 
-    const emailError = validateEmailField(dto.email ?? '');
-    if (emailError) fields.email = emailError;
+    if (nameError) {
+        fields.name = nameError;
+    }
 
-    const passwordError = validatePasswordField(dto.password ?? '');
-    if (passwordError) fields.password = passwordError;
+    const emailError = validateEmailField(dto.email ?? "");
+
+    if (emailError) {
+        fields.email = emailError;
+    }
+
+    const passwordError = validatePasswordField(dto.password ?? "");
+
+    if (passwordError) {
+        fields.password = passwordError;
+    }
 
     return Object.keys(fields).length > 0 ? fields : null;
 }
 
 /**
- * Valida o payload de atualização. Só valida campos que foram enviados.
+ * Validate the update user payload. Only validates fields that were sent.
  */
 export function validateUpdateUser(dto: UpdateUserDTO): ApiErrorFields | null {
     const fields: ApiErrorFields = {};
 
     if (dto.name !== undefined) {
         const nameError = validateName(dto.name);
-        if (nameError) fields.name = nameError;
+
+        if (nameError) {
+            fields.name = nameError;
+        }
     }
 
     if (dto.email !== undefined) {
         const emailError = validateEmailField(dto.email);
-        if (emailError) fields.email = emailError;
+        
+        if (emailError) {
+            fields.email = emailError;
+        }
     }
 
     if (dto.password !== undefined) {
         const passwordError = validatePasswordField(dto.password);
-        if (passwordError) fields.password = passwordError;
+        
+        if (passwordError) {
+            fields.password = passwordError;
+        }
     }
 
     return Object.keys(fields).length > 0 ? fields : null;
