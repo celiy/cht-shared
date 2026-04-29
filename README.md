@@ -8,7 +8,6 @@ O `cht-shared` reúne contratos e utilitários reutilizáveis para manter consis
 
 ## O que faz
 
-- Centraliza tipos e modelos compartilhados.
 - Reúne validações e helpers comuns.
-- Define contratos usados por múltiplos repositórios.
+- Define contratos realmente compartilhados por múltiplos repositórios.
 - Reduz divergência entre frontend e backend.

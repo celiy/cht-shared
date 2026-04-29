@@ -1,7 +1,14 @@
-import type { CreateUserDTO, UpdateUserDTO } from "../entities/User";
 import type { ApiErrorFields } from "../errors/ApiError";
 import validateEmail from "./email";
 import validatePassword, { PASSWORD_MIN_LENGTH } from "./password";
+
+type CreateUserDTO = {
+    name: string;
+    email: string;
+    password: string;
+};
+
+type UpdateUserDTO = Partial<CreateUserDTO>;
 
 export const NAME_MIN_LENGTH = 2;
 export const NAME_MAX_LENGTH = 120;
