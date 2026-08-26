@@ -3,6 +3,7 @@ export type ButtonVariants =
 | "default" 
 | "secondary" 
 | "success" 
+| "info" 
 | "warning" 
 | "destructive" 
 | "outline" 
