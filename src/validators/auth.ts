@@ -3,7 +3,9 @@ import validateEmail from "./email";
 
 type LoginDTO = {
     email: string;
-    password: string;
+    password?: string;
+    senha?: string;
+    empresaId?: number;
 };
 
 function validateEmailField(email: string): string | null {
@@ -28,6 +30,7 @@ function validatePasswordField(password: string): string | null {
 
 /**
  * Validate login payload. Returns field errors or null when valid.
+ * Accepts `senha` (TCC/Mecarvit) or `password` (legacy).
  */
 export function validateLogin(dto: Partial<LoginDTO>): ApiErrorFields | null {
     const fields: ApiErrorFields = {};
@@ -38,10 +41,19 @@ export function validateLogin(dto: Partial<LoginDTO>): ApiErrorFields | null {
         fields.email = emailError;
     }
 
-    const passwordError = validatePasswordField(dto.password ?? "");
+    const senha = dto.senha ?? dto.password ?? "";
+    const passwordError = validatePasswordField(senha);
 
     if (passwordError) {
-        fields.password = passwordError;
+        fields.senha = passwordError;
+    }
+
+    if (dto.empresaId !== undefined && dto.empresaId !== null) {
+        const id = Number(dto.empresaId);
+
+        if (!Number.isInteger(id) || id <= 0) {
+            fields.empresaId = "empresaId deve ser um inteiro positivo";
+        }
     }
 
     return Object.keys(fields).length > 0 ? fields : null;

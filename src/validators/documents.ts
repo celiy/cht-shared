@@ -103,3 +103,22 @@ function matchNumbers(value: string | number | number[] = '') {
 
     return Array.isArray(match) ? match.map(Number) : [];
 }
+
+/** Accepts a Brazilian CPF or CNPJ (digits or formatted). */
+export function validateDocumento(value: string): boolean {
+    if (typeof value !== "string") {
+        return false;
+    }
+
+    const digits = value.replace(/[^\d]+/g, "");
+
+    if (digits.length === 11) {
+        return validateCPF(value);
+    }
+
+    if (digits.length === 14) {
+        return validateCNPJ(value);
+    }
+
+    return false;
+}

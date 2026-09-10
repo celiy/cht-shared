@@ -1,6 +1,9 @@
 import type { ApiErrorFields } from "../errors/ApiError";
 import validateEmail from "./email";
+import { validateName } from "./name";
 import validatePassword, { PASSWORD_MIN_LENGTH } from "./password";
+
+export { NAME_MAX_LENGTH, NAME_MIN_LENGTH, validateName } from "./name";
 
 type CreateUserDTO = {
     name: string;
@@ -9,32 +12,6 @@ type CreateUserDTO = {
 };
 
 type UpdateUserDTO = Partial<CreateUserDTO>;
-
-export const NAME_MIN_LENGTH = 2;
-export const NAME_MAX_LENGTH = 120;
-const NAME_REGEX = /^[\p{L} .'-]+$/u;
-
-function validateName(name: string): string | null {
-    if (typeof name !== "string" || name.trim().length === 0) {
-        return "Nome é obrigatório";
-    }
-
-    const trimmed = name.trim();
-
-    if (trimmed.length < NAME_MIN_LENGTH) {
-        return `Nome deve ter pelo menos ${NAME_MIN_LENGTH} caracteres`;
-    }
-
-    if (trimmed.length > NAME_MAX_LENGTH) {
-        return `Nome deve ter no máximo ${NAME_MAX_LENGTH} caracteres`;
-    }
-
-    if (!NAME_REGEX.test(trimmed)) {
-        return "O nome tem caracteres inválidos";
-    }
-
-    return null;
-}
 
 function validateEmailField(email: string): string | null {
     if (typeof email !== "string" || email.trim().length === 0) {
