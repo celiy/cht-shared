@@ -34,4 +34,18 @@ export interface FormField {
         value: any;
         operator?: 'eq' | 'neq';
     };
+    /**
+     * Extra button beside a `type: "select"` trigger (same style as the select).
+     */
+    selectAction?: {
+        icon?: string;
+        label?: string;
+        side?: "left" | "right";
+    };
+    /** Passed to Select when `type` is `"select"`. */
+    selectMultiple?: {
+        min?: number;
+        max?: number;
+        allSelected?: boolean;
+    };
 }
