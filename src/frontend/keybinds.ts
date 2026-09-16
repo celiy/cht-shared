@@ -86,3 +86,15 @@ export function popModalLayer(id: symbol): void {
 export function isTopModalLayer(id: symbol): boolean {
     return openModalStack[openModalStack.length - 1] === id;
 }
+
+/**
+ * Zero-based index of an open modal in the stack (for z-index stacking).
+ *
+ * @param id Unique layer id for the modal instance
+ * @returns Stack index, or 0 when the id is not in the stack
+ */
+export function getModalLayerIndex(id: symbol): number {
+    const index = openModalStack.indexOf(id);
+
+    return index < 0 ? 0 : index;
+}

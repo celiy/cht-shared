@@ -104,6 +104,13 @@ function matchNumbers(value: string | number | number[] = '') {
     return Array.isArray(match) ? match.map(Number) : [];
 }
 
+/** True when the value has 14 digits (CNPJ length, formatted or not). */
+export function isCnpjDocument(value: unknown): boolean {
+    const digits = String(value ?? "").replace(/[^\d]+/g, "");
+
+    return digits.length === 14;
+}
+
 /** Accepts a Brazilian CPF or CNPJ (digits or formatted). */
 export function validateDocumento(value: string): boolean {
     if (typeof value !== "string") {

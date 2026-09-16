@@ -339,7 +339,7 @@ export function validateEndereco(
     prefix: string
 ): ApiErrorFields {
     const fields: ApiErrorFields = {};
-    const required = ["estado", "cidade", "cep", "bairro", "rua", "complemento"] as const;
+    const required = ["estado", "cidade", "cep", "bairro", "rua"] as const;
 
     for (const key of required) {
         if (isBlank(dto[key] as string | undefined)) {
@@ -347,6 +347,15 @@ export function validateEndereco(
         } else if (tooLong(String(dto[key]).trim(), 180)) {
             fields[`${prefix}${key}`] = `${key} é longo demais`;
         }
+    }
+
+    if (
+        dto.complemento !== undefined
+        && dto.complemento !== null
+        && String(dto.complemento).trim() !== ""
+        && tooLong(String(dto.complemento).trim(), 180)
+    ) {
+        fields[`${prefix}complemento`] = "complemento é longo demais";
     }
 
     const numero = Number(dto.numero);
@@ -380,7 +389,7 @@ export function validateVeiculo(
         }
     }
 
-    if (options.requireCliente && (!options.partial || dto.clienteDocumento !== undefined)) {
+    if (dto.clienteDocumento !== undefined || (options.requireCliente && !options.partial)) {
         const doc = documentoError(String(dto.clienteDocumento ?? ""));
 
         if (doc) {
@@ -427,6 +436,26 @@ export function validateCliente(
         if (email) {
             fields.email = email;
         }
+    }
+
+    if (Array.isArray(dto.enderecoIds)) {
+        const seen = new Set<number>();
+
+        dto.enderecoIds.forEach((item, index) => {
+            const id = Number(item);
+
+            if (!Number.isInteger(id) || id <= 0) {
+                fields[`enderecoIds.${index}`] = "Endereço inválido";
+                return;
+            }
+
+            if (seen.has(id)) {
+                fields.enderecoIds = "Não é permitido repetir o mesmo endereço";
+                return;
+            }
+
+            seen.add(id);
+        });
     }
 
     if (Array.isArray(dto.enderecos)) {
@@ -483,23 +512,55 @@ export function validateItemServico(
     prefix: string
 ): ApiErrorFields {
     const fields: ApiErrorFields = {};
-    const servicoId = positiveIntError(dto.servicoId, "servicoId");
-    const quantidade = positiveIntError(dto.quantidade, "quantidade");
-    const valorObra = moneyError(dto.valorObra, "valorObra");
+    const servicoNome = String(dto.servicoNome ?? "").trim();
+    const servicoIdRaw = dto.servicoId;
+    const hasServicoId =
+        servicoIdRaw !== undefined
+        && servicoIdRaw !== null
+        && servicoIdRaw !== ""
+        && !positiveIntError(servicoIdRaw, "servicoId");
 
-    if (servicoId) {
-        fields[`${prefix}servicoId`] = servicoId;
+    if (!hasServicoId && servicoNome === "") {
+        fields[`${prefix}servicoNome`] = "Nome do serviço é obrigatório";
+    } else if (!hasServicoId && tooLong(servicoNome, 180)) {
+        fields[`${prefix}servicoNome`] = "Nome é longo demais";
     }
+
+    if (hasServicoId) {
+        const servicoId = positiveIntError(servicoIdRaw, "servicoId");
+
+        if (servicoId) {
+            fields[`${prefix}servicoId`] = servicoId;
+        }
+    }
+
+    const quantidade = positiveIntError(dto.quantidade, "quantidade");
 
     if (quantidade) {
         fields[`${prefix}quantidade`] = quantidade;
     }
 
-    if (valorObra) {
-        fields[`${prefix}valorObra`] = valorObra;
+    const obraProvided = dto.valorObra !== undefined && dto.valorObra !== null && dto.valorObra !== "";
+    const pecasProvided =
+        dto.valorPecas !== undefined && dto.valorPecas !== null && dto.valorPecas !== "";
+    const obraAmount = obraProvided ? Number(dto.valorObra) : 0;
+    const pecasAmount = pecasProvided ? Number(dto.valorPecas) : 0;
+    const hasObra = Number.isFinite(obraAmount) && obraAmount > 0;
+    const hasPecas = Number.isFinite(pecasAmount) && pecasAmount > 0;
+
+    if (!hasObra && !hasPecas) {
+        fields[`${prefix}valorObra`] = "Informe valor de obra ou de peças";
     }
 
-    if (dto.valorPecas !== undefined && dto.valorPecas !== null && dto.valorPecas !== "") {
+    if (obraProvided) {
+        const valorObra = moneyError(dto.valorObra, "valorObra", false);
+
+        if (valorObra) {
+            fields[`${prefix}valorObra`] = valorObra;
+        }
+    }
+
+    if (pecasProvided) {
         const pecas = moneyError(dto.valorPecas, "valorPecas", false);
 
         if (pecas) {

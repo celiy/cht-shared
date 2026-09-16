@@ -1,1 +1,1 @@
-export const INPUT_TYPES = ['text', 'email', 'phone', 'cpf', 'cnpj', 'cep', 'password', 'number', 'date', 'textarea'];
+export const INPUT_TYPES = ['text', 'email', 'phone', 'cpf', 'cnpj', 'cep', 'password', 'number', 'money', 'date', 'textarea'];

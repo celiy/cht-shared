@@ -1,7 +1,7 @@
 export interface FormField {
     id: string;
     label: string;
-    type: 'text' | 'email' | 'phone' | 'cpf' | 'cnpj' | 'cep' | 'password' | 'number' | 'date' | 'textarea' | 'checkbox' | 'radio' | 'select';
+    type: 'text' | 'email' | 'phone' | 'cpf' | 'cnpj' | 'cep' | 'password' | 'number' | 'money' | 'date' | 'textarea' | 'checkbox' | 'radio' | 'select';
     section?: string;
     group?: string;
     name?: string;
@@ -31,8 +31,8 @@ export interface FormField {
     cols?: number;
     condition?: {
         field: string;
-        value: any;
-        operator?: 'eq' | 'neq';
+        value?: any;
+        operator?: 'eq' | 'neq' | 'cnpj';
     };
     /**
      * Extra button beside a `type: "select"` trigger (same style as the select).
@@ -41,11 +41,25 @@ export interface FormField {
         icon?: string;
         label?: string;
         side?: "left" | "right";
+        tooltip?: string;
     };
     /** Passed to Select when `type` is `"select"`. */
     selectMultiple?: {
         min?: number;
         max?: number;
         allSelected?: boolean;
+    };
+    /**
+     * Multi-select: selected options appear as chips below the trigger
+     * (`Select` `separateSelected`).
+     */
+    selectSeparateSelected?: boolean;
+    /**
+     * Search for `type: "select"`. When `external` is true, typing emits
+     * `search:external` with `{ field, value }` instead of filtering locally.
+     */
+    selectSearch?: {
+        external: boolean;
+        field?: string;
     };
 }
