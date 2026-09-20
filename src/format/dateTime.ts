@@ -67,3 +67,31 @@ export function formatDateInputValue(value: unknown): string {
 
     return `${year}-${month}-${day}`;
 }
+
+/**
+ * `dd/mm/aaaa` for date-only values, anchored at UTC.
+ *
+ * Date-only fields are stored as UTC midnight because that is what
+ * `new Date("aaaa-mm-dd")` produces. Reading them back with the local getters
+ * that `formatDateTimeBr` uses would shift the day by one in negative-offset
+ * timezones (in UTC-3, `2026-09-20` would render as `19/09/2026`), so this
+ * helper stays on the UTC basis.
+ *
+ * Use `formatDateTimeBr` for real instants, where the local time matters.
+ */
+export function formatDateBr(value: unknown): string {
+    if (value === null || value === undefined || value === "") {
+        return "—";
+    }
+
+    const date = value instanceof Date ? value : new Date(String(value));
+
+    if (Number.isNaN(date.getTime())) {
+        return "—";
+    }
+
+    const day = String(date.getUTCDate()).padStart(2, "0");
+    const month = String(date.getUTCMonth() + 1).padStart(2, "0");
+
+    return `${day}/${month}/${date.getUTCFullYear()}`;
+}

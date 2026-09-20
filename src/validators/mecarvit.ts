@@ -7,6 +7,7 @@ import validatePassword, { PASSWORD_MIN_LENGTH } from "./password";
 const TEXT_MAX = 5000;
 const ACCESS_DIGITS = new Set(["1", "2", "3", "4", "5", "6"]);
 const RES_TIPOS = new Set(["entrada", "saida"]);
+const DATE_ONLY_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 const PAGAMENTO_TIPOS = new Set([
     "dinheiro",
     "credito",
@@ -136,6 +137,33 @@ function moneyError(value: unknown, label: string, required = true): string | nu
 
     if (!Number.isFinite(parsed) || parsed < 0) {
         return `${label} deve ser um número maior ou igual a zero`;
+    }
+
+    return null;
+}
+
+/**
+ * Optional date-only field. Accepts `aaaa-mm-dd` — the exact value an
+ * `<input type="date">` produces — or empty/null to clear it.
+ *
+ * Rejects values that `Date` would silently normalize (2026-02-31 becoming
+ * 03-03), so a typo never reaches the database as a different day.
+ */
+function dateError(value: unknown, label: string, required = false): string | null {
+    if (value === undefined || value === null || value === "") {
+        return required ? `${label} é obrigatória` : null;
+    }
+
+    const raw = String(value).trim();
+
+    if (!DATE_ONLY_PATTERN.test(raw)) {
+        return `${label} deve estar no formato aaaa-mm-dd`;
+    }
+
+    const date = new Date(`${raw}T00:00:00.000Z`);
+
+    if (Number.isNaN(date.getTime()) || date.toISOString().slice(0, 10) !== raw) {
+        return `${label} não é uma data válida`;
     }
 
     return null;
@@ -274,6 +302,10 @@ export function validateUpdateUsuario(dto: Record<string, unknown>): ApiErrorFie
 
     if (dto.ativo !== undefined && typeof dto.ativo !== "boolean") {
         fields.ativo = "ativo deve ser booleano";
+    }
+
+    if (dto.senhaInicial !== undefined && typeof dto.senhaInicial !== "boolean") {
+        fields.senhaInicial = "senhaInicial deve ser booleano";
     }
 
     return emptyToNull(fields);
@@ -624,6 +656,14 @@ export function validateOrdemServico(
         }
     }
 
+    if (dto.dataLimitePagamento !== undefined) {
+        const dataLimite = dateError(dto.dataLimitePagamento, "Data limite de pagamento");
+
+        if (dataLimite) {
+            fields.dataLimitePagamento = dataLimite;
+        }
+    }
+
     if (Array.isArray(dto.itens)) {
         dto.itens.forEach((item, index) => {
             const record = asRecord(item);
@@ -691,6 +731,14 @@ export function validateRegEntradaSaida(
 
         if (valor) {
             fields.valor = valor;
+        }
+    }
+
+    if (dto.dataLimitePagamento !== undefined) {
+        const dataLimite = dateError(dto.dataLimitePagamento, "Data limite de pagamento");
+
+        if (dataLimite) {
+            fields.dataLimitePagamento = dataLimite;
         }
     }
 
