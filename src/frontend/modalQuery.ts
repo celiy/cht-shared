@@ -30,6 +30,7 @@ export function releaseModalUrlInstance(id: number): void {
 export function resetModalUrlIdAllocator(next = 1): void {
     registeredModalUrlIds.clear();
     nextModalUrlId = next;
+    resetModalUrlOpenState();
 }
 
 /**
@@ -98,4 +99,134 @@ export function addModalToQuery(ids: number[], id: number): number[] {
 
 export function removeModalFromQuery(ids: number[], id: number): number[] {
     return ids.filter((entry) => entry !== id);
+}
+
+const openModalUrlIds = new Set<number>();
+let pendingRouter: ModalUrlRouter | null = null;
+let flushQueued = false;
+let navGeneration = 0;
+
+export type ModalUrlRouter = {
+    push: (to: { query: Record<string, unknown> }) => Promise<unknown>;
+    replace: (to: { query: Record<string, unknown> }) => Promise<unknown>;
+    currentRoute: { value: { query: Record<string, unknown> } };
+};
+
+/**
+ * Tracks which modal instances are open so URL sync can batch simultaneous opens.
+ */
+export function trackModalUrlOpenState(id: number, open: boolean): void {
+    if (open) {
+        openModalUrlIds.add(id);
+    } else {
+        openModalUrlIds.delete(id);
+    }
+}
+
+/** @internal */
+export function resetModalUrlOpenState(): void {
+    openModalUrlIds.clear();
+    pendingRouter = null;
+    flushQueued = false;
+    navGeneration = 0;
+}
+
+function sortedOpenModalUrlIds(): number[] {
+    return [...openModalUrlIds].sort((a, b) => a - b);
+}
+
+function queryIdsFromRoute(query: Record<string, unknown>): number[] {
+    const raw = query[MODAL_QUERY_PARAM];
+    const text = Array.isArray(raw) ? raw[0] : raw;
+
+    return parseModalQueryParam(typeof text === "string" ? text : undefined);
+}
+
+function buildQueryWithModalIds(
+    base: Record<string, unknown>,
+    ids: number[]
+): Record<string, unknown> {
+    const query = { ...base };
+
+    if (ids.length === 0) {
+        delete query[MODAL_QUERY_PARAM];
+    } else {
+        query[MODAL_QUERY_PARAM] = serializeModalQueryParam(ids);
+    }
+
+    return query;
+}
+
+function modalIdStacksEqual(a: number[], b: number[]): boolean {
+    if (a.length !== b.length) {
+        return false;
+    }
+
+    return a.every((value, index) => value === b[index]);
+}
+
+function shouldPushForStackGrow(routeIds: number[], desired: number[]): boolean {
+    if (desired.length === 0 || desired.length <= routeIds.length) {
+        return false;
+    }
+
+    for (let i = 0; i < routeIds.length; i += 1) {
+        if (routeIds[i] !== desired[i]) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+/**
+ * Coalesces modal open/close into a single router update (fixes simultaneous opens).
+ */
+export function scheduleModalUrlQuerySync(router: ModalUrlRouter): void {
+    pendingRouter = router;
+
+    if (flushQueued) {
+        return;
+    }
+
+    flushQueued = true;
+    queueMicrotask(() => {
+        flushQueued = false;
+        void flushModalUrlQuerySync();
+    });
+}
+
+async function flushModalUrlQuerySync(): Promise<void> {
+    const router = pendingRouter;
+
+    if (!router) {
+        return;
+    }
+
+    const routeQuery = router.currentRoute.value.query;
+    const routeIds = queryIdsFromRoute(routeQuery);
+    const desired = sortedOpenModalUrlIds();
+
+    if (modalIdStacksEqual(routeIds, desired)) {
+        return;
+    }
+
+    const query = buildQueryWithModalIds(routeQuery, desired);
+    navGeneration += 1;
+    const gen = navGeneration;
+    const usePush = shouldPushForStackGrow(routeIds, desired);
+
+    try {
+        if (usePush) {
+            await router.push({ query });
+        } else {
+            await router.replace({ query });
+        }
+    } catch {
+        return;
+    }
+
+    if (gen !== navGeneration) {
+        void flushModalUrlQuerySync();
+    }
 }
