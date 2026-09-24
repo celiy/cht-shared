@@ -174,7 +174,7 @@ export function keysFromAreaLevel(area: AccessAreaKey, level: AccessLevelKey): s
         return [...editKeys, exportar].filter((key): key is string => Boolean(key));
     }
 
-    return [...editKeys, exportar, excluir].filter((key): key is string => Boolean(key));
+    return [...editKeys, excluir].filter((key): key is string => Boolean(key));
 }
 
 export function areaLevelFromKeys(area: AccessAreaKey, keys: readonly string[]): AccessLevelKey {
@@ -211,10 +211,33 @@ export function keysFromAreaLevels(
         }
     }
 
+    const osLevel = levels.os ?? "none";
+
+    if (osLevel !== "none") {
+        keys.add(PERMISSIONS.funcionarios.ver);
+        keys.add(PERMISSIONS.clientes.ver);
+        keys.add(PERMISSIONS.veiculos.ver);
+        keys.add(PERMISSIONS.financeiro.ver);
+    }
+
     if (gerente) {
         keys.add(PERMISSIONS.GERENTE);
-        keys.add(PERMISSIONS.funcionarios.pii);
-        keys.add(PERMISSIONS.clientes.pii);
+
+        for (const key of [
+            ...areaFullKeys("funcionarios", true),
+            ...areaFullKeys("clientes", true),
+            ...areaFullKeys("veiculos", false),
+            ...areaFullKeys("os", false),
+            ...areaFullKeys("financeiro", false)
+        ]) {
+            keys.add(key);
+        }
+    } else {
+        for (const key of [...keys]) {
+            if (key.startsWith("funcionarios.") && key !== PERMISSIONS.funcionarios.ver) {
+                keys.delete(key);
+            }
+        }
     }
 
     return [...keys].sort();
@@ -339,6 +362,119 @@ export function isSuperadmin(nivelAcesso: string): boolean {
     const keys = parsePermissions(nivelAcesso);
 
     return keys.includes(PERMISSIONS.SUPERADMIN) || String(nivelAcesso ?? "").includes("0");
+}
+
+export function isGerente(nivelAcesso: string): boolean {
+    if (isSuperadmin(nivelAcesso)) {
+        return true;
+    }
+
+    return parsePermissions(nivelAcesso).includes(PERMISSIONS.GERENTE);
+}
+
+export const ACCESS_LEVEL_HELP: Record<AccessLevelKey, string> = {
+    none: "Sem acesso a esta área.",
+    ver: "Vê dados em contexto, sem abrir o menu da área.",
+    editar: "Abre a área, cadastra e edita registros.",
+    exportar: "Exporta a tabela da área para PDF.",
+    excluir: "Exclui ou desativa registros."
+};
+
+export function permissionToken(area: AccessAreaKey, level: AccessLevelKey): string {
+    return `${area}:${level}`;
+}
+
+export function parsePermissionToken(token: string): { area: AccessAreaKey; level: AccessLevelKey } | null {
+    const [area, level] = token.split(":");
+
+    if (!ACCESS_AREAS.some((item) => item.key === area)) {
+        return null;
+    }
+
+    if (!ACCESS_LEVELS.some((item) => item.key === level)) {
+        return null;
+    }
+
+    return {
+        area: area as AccessAreaKey,
+        level: level as AccessLevelKey
+    };
+}
+
+export function togglePermissionTokens(
+    selected: readonly string[],
+    area: AccessAreaKey,
+    level: AccessLevelKey
+): string[] {
+    const next = selected.filter((token) => !token.startsWith(`${area}:`));
+
+    if (level === "none") {
+        next.push(permissionToken(area, "none"));
+        return next;
+    }
+
+    next.push(permissionToken(area, "ver"));
+
+    if (level === "ver") {
+        return next;
+    }
+
+    next.push(permissionToken(area, "editar"));
+
+    if (level === "editar") {
+        return next;
+    }
+
+    if (level === "exportar") {
+        next.push(permissionToken(area, "exportar"));
+        return next;
+    }
+
+    next.push(permissionToken(area, "excluir"));
+    return next;
+}
+
+export function levelsFromPermissionTokens(
+    tokens: readonly string[]
+): Record<AccessAreaKey, AccessLevelKey> {
+    const levels = {} as Record<AccessAreaKey, AccessLevelKey>;
+
+    for (const area of ACCESS_AREAS) {
+        const areaTokens = tokens.filter((token) => token.startsWith(`${area.key}:`));
+
+        if (areaTokens.includes(permissionToken(area.key, "excluir"))) {
+            levels[area.key] = "excluir";
+        } else if (areaTokens.includes(permissionToken(area.key, "exportar"))) {
+            levels[area.key] = "exportar";
+        } else if (areaTokens.includes(permissionToken(area.key, "editar"))) {
+            levels[area.key] = "editar";
+        } else if (areaTokens.includes(permissionToken(area.key, "ver"))) {
+            levels[area.key] = "ver";
+        } else {
+            levels[area.key] = "none";
+        }
+    }
+
+    return levels;
+}
+
+export function tokensFromAreaLevels(
+    levels: Partial<Record<AccessAreaKey, AccessLevelKey>>
+): string[] {
+    const tokens: string[] = [];
+
+    for (const area of ACCESS_AREAS) {
+        const level = levels[area.key] ?? "none";
+
+        if (level === "none") {
+            tokens.push(permissionToken(area.key, "none"));
+            continue;
+        }
+
+        tokens.push(...togglePermissionTokens([], area.key, level));
+    }
+
+    return tokens;
 }
 
 export function hasPermission(nivelAcesso: string, key: string): boolean {

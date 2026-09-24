@@ -40,6 +40,10 @@ export function pagamentoSituacao(options: {
     const valor = Number(options.valor) || 0;
     const valorPago = Number(options.valorPago) || 0;
 
+    if (valor <= PAYMENT_EPSILON && valorPago <= PAYMENT_EPSILON) {
+        return PAGAMENTO_SITUACAO.NAO_PAGO;
+    }
+
     if (isRegistroFullyPaid(valor, valorPago)) {
         return PAGAMENTO_SITUACAO.PAGO;
     }

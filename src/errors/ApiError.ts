@@ -9,9 +9,15 @@ export interface ApiErrorFields {
     [fieldId: string]: string;
 }
 
+export interface ApiErrorEmpresaOption {
+    id: number;
+    nome: string;
+}
+
 export interface ApiErrorBody {
     message: string;
     fields?: ApiErrorFields;
+    empresas?: ApiErrorEmpresaOption[];
 }
 
 export interface ApiErrorResponse {

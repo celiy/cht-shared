@@ -27,6 +27,9 @@ export interface FormField {
         label: string;
         value: string;
         description?: string;
+        optionHelperText?: string;
+        options?: FormField["options"];
+        disabled?: boolean;
     }[];
     cols?: number;
     condition?: {
@@ -62,4 +65,6 @@ export interface FormField {
         external: boolean;
         field?: string;
     };
+    selectSearchLoading?: boolean;
+    autocomplete?: string;
 }
