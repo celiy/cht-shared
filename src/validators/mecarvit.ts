@@ -1,11 +1,11 @@
 import type { ApiErrorFields } from "../errors/ApiError";
+import { isKnownPermission, parsePermissions, PERMISSIONS } from "../mecarvit/access";
 import { validateCPF, validateDocumento } from "./documents";
 import validateEmail from "./email";
 import { validateName } from "./name";
 import validatePassword, { PASSWORD_MIN_LENGTH } from "./password";
 
 const TEXT_MAX = 5000;
-const ACCESS_DIGITS = new Set(["1", "2", "3", "4", "5", "6"]);
 const RES_TIPOS = new Set(["entrada", "saida"]);
 const DATE_ONLY_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 const PAGAMENTO_TIPOS = new Set([
@@ -87,28 +87,30 @@ function nivelAcessoError(value: unknown, { allowZero }: { allowZero: boolean })
         return "nivelAcesso é obrigatório";
     }
 
-    const raw = String(value).trim();
+    const keys = Array.isArray(value)
+        ? value.map((item) => String(item)).filter((item) => item !== "")
+        : parsePermissions(String(value));
 
-    if (raw === "0") {
-        return allowZero ? null : "nivelAcesso 0 é exclusivo do gestor fundador";
+    if (keys.length === 0) {
+        return "nivelAcesso é obrigatório";
     }
 
-    if (!/^[1-6]+$/.test(raw)) {
-        return "nivelAcesso deve ser a concatenação dos dígitos 1 a 6";
+    if (keys.includes(PERMISSIONS.SUPERADMIN)) {
+        return allowZero ? null : "nivelAcesso 0 é exclusivo do gestor fundador";
     }
 
     const seen = new Set<string>();
 
-    for (const digit of raw) {
-        if (!ACCESS_DIGITS.has(digit)) {
-            return "nivelAcesso contém dígito inválido";
+    for (const key of keys) {
+        if (!isKnownPermission(key)) {
+            return "nivelAcesso contém permissão inválida";
         }
 
-        if (seen.has(digit)) {
-            return "nivelAcesso não pode repetir dígitos";
+        if (seen.has(key)) {
+            return "nivelAcesso não pode repetir permissões";
         }
 
-        seen.add(digit);
+        seen.add(key);
     }
 
     return null;
@@ -572,32 +574,15 @@ export function validateItemServico(
         fields[`${prefix}quantidade`] = quantidade;
     }
 
-    const obraProvided = dto.valorObra !== undefined && dto.valorObra !== null && dto.valorObra !== "";
-    const pecasProvided =
-        dto.valorPecas !== undefined && dto.valorPecas !== null && dto.valorPecas !== "";
-    const obraAmount = obraProvided ? Number(dto.valorObra) : 0;
-    const pecasAmount = pecasProvided ? Number(dto.valorPecas) : 0;
-    const hasObra = Number.isFinite(obraAmount) && obraAmount > 0;
-    const hasPecas = Number.isFinite(pecasAmount) && pecasAmount > 0;
+    const valorRaw = dto.valor !== undefined && dto.valor !== null && dto.valor !== ""
+        ? dto.valor
+        : dto.valorObra;
+    const valor = moneyError(valorRaw, "valor", true);
 
-    if (!hasObra && !hasPecas) {
-        fields[`${prefix}valorObra`] = "Informe valor de obra ou de peças";
-    }
-
-    if (obraProvided) {
-        const valorObra = moneyError(dto.valorObra, "valorObra", false);
-
-        if (valorObra) {
-            fields[`${prefix}valorObra`] = valorObra;
-        }
-    }
-
-    if (pecasProvided) {
-        const pecas = moneyError(dto.valorPecas, "valorPecas", false);
-
-        if (pecas) {
-            fields[`${prefix}valorPecas`] = pecas;
-        }
+    if (valor) {
+        fields[`${prefix}valor`] = valor === "valor é obrigatório" ? "Informe o valor" : valor;
+    } else if (Number(valorRaw) <= 0) {
+        fields[`${prefix}valor`] = "valor deve ser maior que zero";
     }
 
     return fields;
