@@ -58,3 +58,34 @@ export function validateLogin(dto: Partial<LoginDTO>): ApiErrorFields | null {
 
     return Object.keys(fields).length > 0 ? fields : null;
 }
+
+const SYSTEM_OWNER_LOGIN_PATTERN = /^[a-zA-Z0-9._@+-]+$/;
+
+type SystemOwnerDTO = {
+    login?: string;
+    senha?: string;
+    password?: string;
+};
+
+/**
+ * Validate system-owner setup/login payload (desktop installer / first run).
+ */
+export function validateSystemOwnerCredentials(dto: Partial<SystemOwnerDTO>): ApiErrorFields | null {
+    const fields: ApiErrorFields = {};
+    const login = String(dto.login ?? "").trim();
+    const senha = dto.senha ?? dto.password ?? "";
+
+    if (login.length < 3 || login.length > 80 || !SYSTEM_OWNER_LOGIN_PATTERN.test(login)) {
+        fields.login = "Login deve ter entre 3 e 80 caracteres (letras, números ou . _ @ + -)";
+    }
+
+    const passwordError = validatePasswordField(senha);
+
+    if (passwordError) {
+        fields.senha = passwordError;
+    } else if (senha.length < 8) {
+        fields.senha = "Senha deve ter pelo menos 8 caracteres";
+    }
+
+    return Object.keys(fields).length > 0 ? fields : null;
+}
