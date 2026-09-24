@@ -1,7 +1,7 @@
 export interface FormField {
     id: string;
     label: string;
-    type: 'text' | 'email' | 'phone' | 'cpf' | 'cnpj' | 'cep' | 'password' | 'number' | 'money' | 'date' | 'textarea' | 'checkbox' | 'radio' | 'select';
+    type: 'text' | 'email' | 'phone' | 'cpf' | 'cnpj' | 'cep' | 'password' | 'number' | 'money' | 'date' | 'textarea' | 'checkbox' | 'radio' | 'select' | 'toggle' | 'toggleable';
     section?: string;
     group?: string;
     name?: string;
@@ -30,6 +30,8 @@ export interface FormField {
         optionHelperText?: string;
         options?: FormField["options"];
         disabled?: boolean;
+        leftIcon?: string;
+        rightIcon?: string;
     }[];
     cols?: number;
     condition?: {

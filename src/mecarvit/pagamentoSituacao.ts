@@ -7,6 +7,51 @@ export const PAGAMENTO_SITUACAO = {
 
 export type PagamentoSituacao = (typeof PAGAMENTO_SITUACAO)[keyof typeof PAGAMENTO_SITUACAO];
 
+/** Stable query/filter slugs for pagamentoSituacao list filters. */
+export const PAGAMENTO_SITUACAO_FILTER = {
+    PAGO: "pago",
+    NAO_PAGO: "nao_pago",
+    A_VENCER: "a_vencer",
+    ATRASADO: "atrasado"
+} as const;
+
+export type PagamentoSituacaoFilter =
+    (typeof PAGAMENTO_SITUACAO_FILTER)[keyof typeof PAGAMENTO_SITUACAO_FILTER];
+
+const PAGAMENTO_SITUACAO_BY_FILTER: Record<PagamentoSituacaoFilter, PagamentoSituacao> = {
+    [PAGAMENTO_SITUACAO_FILTER.PAGO]: PAGAMENTO_SITUACAO.PAGO,
+    [PAGAMENTO_SITUACAO_FILTER.NAO_PAGO]: PAGAMENTO_SITUACAO.NAO_PAGO,
+    [PAGAMENTO_SITUACAO_FILTER.A_VENCER]: PAGAMENTO_SITUACAO.A_VENCER,
+    [PAGAMENTO_SITUACAO_FILTER.ATRASADO]: PAGAMENTO_SITUACAO.ATRASADO
+};
+
+/**
+ * Parses `?pagamentoSituacao=` (slug or display label). Empty / todos → null.
+ */
+export function parsePagamentoSituacaoFilter(
+    raw: string | null | undefined
+): PagamentoSituacao | null {
+    const normalized = raw?.trim().toLowerCase();
+
+    if (!normalized || normalized === "todos" || normalized === "todas") {
+        return null;
+    }
+
+    const bySlug = PAGAMENTO_SITUACAO_BY_FILTER[normalized as PagamentoSituacaoFilter];
+
+    if (bySlug) {
+        return bySlug;
+    }
+
+    for (const situacao of Object.values(PAGAMENTO_SITUACAO)) {
+        if (situacao.toLowerCase() === normalized) {
+            return situacao;
+        }
+    }
+
+    return null;
+}
+
 export const PAYMENT_EPSILON = 0.009;
 
 function toDate(value: Date | string | number | null | undefined): Date | null {
