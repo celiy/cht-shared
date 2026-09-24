@@ -58,6 +58,11 @@ export interface FormField {
      */
     selectSeparateSelected?: boolean;
     /**
+     * Multi-select: when false, the trigger keeps the placeholder/header instead
+     * of listing selected option labels.
+     */
+    selectShowSelectedLabels?: boolean;
+    /**
      * Search for `type: "select"`. When `external` is true, typing emits
      * `search:external` with `{ field, value }` instead of filtering locally.
      */

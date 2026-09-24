@@ -277,7 +277,11 @@ export const GERENTE_PERMISSIONS = [
 export const MECANICO_PERMISSIONS = [
     PERMISSIONS.os.ver,
     PERMISSIONS.os.editar,
-    PERMISSIONS.os.diagnosticoEditar
+    PERMISSIONS.os.diagnosticoEditar,
+    PERMISSIONS.funcionarios.ver,
+    PERMISSIONS.clientes.ver,
+    PERMISSIONS.veiculos.ver,
+    PERMISSIONS.financeiro.ver
 ].sort();
 
 export function serializePermissions(keys: readonly string[]): string {
@@ -406,32 +410,157 @@ export function togglePermissionTokens(
     area: AccessAreaKey,
     level: AccessLevelKey
 ): string[] {
-    const next = selected.filter((token) => !token.startsWith(`${area}:`));
+    const prefix = `${area}:`;
+    const other = selected.filter((token) => !token.startsWith(prefix));
+    const areaTokens = selected.filter((token) => token.startsWith(prefix));
+    const tokenFor = (lvl: AccessLevelKey) => permissionToken(area, lvl);
+    const has = (lvl: AccessLevelKey) => areaTokens.includes(tokenFor(lvl));
+
+    if (level === "exportar" || level === "excluir") {
+        let nextArea = areaTokens.filter((token) => token !== tokenFor("none"));
+
+        if (has(level)) {
+            nextArea = nextArea.filter((token) => token !== tokenFor(level));
+
+            if (nextArea.length === 0) {
+                return [...other, tokenFor("none")];
+            }
+
+            return [...other, ...nextArea];
+        }
+
+        if (!has("ver")) {
+            nextArea.push(tokenFor("ver"));
+        }
+
+        if (!has("editar")) {
+            nextArea.push(tokenFor("editar"));
+        }
+
+        nextArea.push(tokenFor(level));
+
+        return [...other, ...nextArea];
+    }
+
+    const next = selected.filter((token) => !token.startsWith(prefix));
 
     if (level === "none") {
-        next.push(permissionToken(area, "none"));
+        next.push(tokenFor("none"));
         return next;
     }
 
-    next.push(permissionToken(area, "ver"));
+    next.push(tokenFor("ver"));
 
     if (level === "ver") {
         return next;
     }
 
-    next.push(permissionToken(area, "editar"));
+    next.push(tokenFor("editar"));
 
-    if (level === "editar") {
-        return next;
-    }
-
-    if (level === "exportar") {
-        next.push(permissionToken(area, "exportar"));
-        return next;
-    }
-
-    next.push(permissionToken(area, "excluir"));
     return next;
+}
+
+export function permissionTokensForArea(
+    area: AccessAreaKey,
+    keys: readonly string[]
+): string[] {
+    const verKey = `${area}.ver`;
+    const editarKey = `${area}.editar`;
+    const criarKey = `${area}.criar`;
+    const exportKey = `${area}.exportar`;
+    const excluirKey = `${area}.excluir`;
+    const hasKey = (key: string) => keys.includes(key);
+
+    const tokens = new Set<string>();
+
+    if (
+        hasKey(verKey)
+        || hasKey(editarKey)
+        || hasKey(criarKey)
+        || hasKey(exportKey)
+        || hasKey(excluirKey)
+    ) {
+        tokens.add(permissionToken(area, "ver"));
+    }
+
+    if (hasKey(editarKey) || hasKey(criarKey) || hasKey(exportKey) || hasKey(excluirKey)) {
+        tokens.add(permissionToken(area, "editar"));
+    }
+
+    if (hasKey(exportKey)) {
+        tokens.add(permissionToken(area, "exportar"));
+    }
+
+    if (hasKey(excluirKey)) {
+        tokens.add(permissionToken(area, "excluir"));
+    }
+
+    if (tokens.size === 0) {
+        return [permissionToken(area, "none")];
+    }
+
+    return [...tokens];
+}
+
+export function tokensFromPermissionKeys(keys: readonly string[]): string[] {
+    const tokens: string[] = [];
+
+    for (const area of ACCESS_AREAS) {
+        tokens.push(...permissionTokensForArea(area.key, keys));
+    }
+
+    return tokens;
+}
+
+export function keysFromPermissionTokens(tokens: readonly string[]): string[] {
+    const keys = new Set<string>();
+
+    for (const area of ACCESS_AREAS) {
+        const areaTokens = tokens.filter((token) => token.startsWith(`${area.key}:`));
+
+        if (areaTokens.length === 0 || areaTokens.includes(permissionToken(area.key, "none"))) {
+            continue;
+        }
+
+        const hasExport = areaTokens.includes(permissionToken(area.key, "exportar"));
+        const hasExcluir = areaTokens.includes(permissionToken(area.key, "excluir"));
+        const hasEditar = areaTokens.includes(permissionToken(area.key, "editar"));
+        const hasVer = areaTokens.includes(permissionToken(area.key, "ver"));
+
+        if (hasExcluir) {
+            for (const key of keysFromAreaLevel(area.key, "excluir")) {
+                keys.add(key);
+            }
+        }
+
+        if (hasExport) {
+            for (const key of keysFromAreaLevel(area.key, "exportar")) {
+                keys.add(key);
+            }
+        }
+
+        if (!hasExcluir && !hasExport && hasEditar) {
+            for (const key of keysFromAreaLevel(area.key, "editar")) {
+                keys.add(key);
+            }
+        }
+
+        if (!hasExcluir && !hasExport && !hasEditar && hasVer) {
+            for (const key of keysFromAreaLevel(area.key, "ver")) {
+                keys.add(key);
+            }
+        }
+    }
+
+    const sorted = [...keys].sort();
+
+    for (const key of [...sorted]) {
+        if (key.startsWith("funcionarios.") && key !== PERMISSIONS.funcionarios.ver) {
+            keys.delete(key);
+        }
+    }
+
+    return [...keys].sort();
 }
 
 export function levelsFromPermissionTokens(
