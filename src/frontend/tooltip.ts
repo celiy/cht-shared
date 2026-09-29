@@ -1,3 +1,5 @@
+import { DEFAULT_DELAY, resolveShowDelay } from "./tooltipDelay.js";
+
 type DirectiveBinding<T> = {
     value?: T;
 };
@@ -13,6 +15,8 @@ type TooltipOptions = {
     html?: boolean;
     offset?: number;
     maxWidth?: string;
+    /** Show delay in ms. Default 100. Use 0 for immediate. */
+    delay?: number;
 };
 
 const DEFAULT_OFFSET = 6;
@@ -21,6 +25,7 @@ type TooltipTarget = HTMLElement & {
     _tooltipOptions?: TooltipOptions;
     _tooltipMouseEnter?: () => void;
     _tooltipMouseLeave?: () => void;
+    _tooltipShowTimer?: number | null;
 };
 
 function createTooltip(maxWidth = "16rem"): HTMLElement {
@@ -56,7 +61,8 @@ function normalizeOptions(bindingValue: TooltipBinding): TooltipOptions {
             placement: "top",
             html: false,
             offset: DEFAULT_OFFSET,
-            maxWidth: "16rem"
+            maxWidth: "16rem",
+            delay: DEFAULT_DELAY
         };
     }
 
@@ -65,7 +71,8 @@ function normalizeOptions(bindingValue: TooltipBinding): TooltipOptions {
         placement: bindingValue?.placement ?? "top",
         html: Boolean(bindingValue?.html),
         offset: bindingValue?.offset ?? DEFAULT_OFFSET,
-        maxWidth: bindingValue?.maxWidth ?? "16rem"
+        maxWidth: bindingValue?.maxWidth ?? "16rem",
+        delay: resolveShowDelay(bindingValue?.delay)
     };
 }
 
@@ -138,12 +145,42 @@ function hide() {
     }
 }
 
+function clearShowTimer(target: TooltipTarget) {
+    if (target._tooltipShowTimer == null) {
+        return;
+    }
+
+    window.clearTimeout(target._tooltipShowTimer);
+    target._tooltipShowTimer = null;
+}
+
 export default {
     mounted(el: HTMLElement, binding: DirectiveBinding<TooltipBinding>) {
         const target = el as TooltipTarget;
         target._tooltipOptions = normalizeOptions(binding.value ?? "");
-        target._tooltipMouseEnter = () => show(target, target._tooltipOptions ?? normalizeOptions(""));
-        target._tooltipMouseLeave = hide;
+
+        target._tooltipMouseEnter = () => {
+            clearShowTimer(target);
+            const options = target._tooltipOptions ?? normalizeOptions("");
+            const delay = resolveShowDelay(options.delay);
+
+            if (delay === 0) {
+                show(target, options);
+
+                return;
+            }
+
+            target._tooltipShowTimer = window.setTimeout(() => {
+                target._tooltipShowTimer = null;
+                show(target, target._tooltipOptions ?? options);
+            }, delay);
+        };
+
+        target._tooltipMouseLeave = () => {
+            clearShowTimer(target);
+            hide();
+        };
+
         target.addEventListener("mouseenter", target._tooltipMouseEnter);
         target.addEventListener("mouseleave", target._tooltipMouseLeave);
         tooltipUsers += 1;
@@ -156,6 +193,7 @@ export default {
 
     unmounted(el: HTMLElement) {
         const target = el as TooltipTarget;
+        clearShowTimer(target);
 
         if (target._tooltipMouseEnter) {
             target.removeEventListener("mouseenter", target._tooltipMouseEnter);
