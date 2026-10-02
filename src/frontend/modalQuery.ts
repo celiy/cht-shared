@@ -123,12 +123,39 @@ export function trackModalUrlOpenState(id: number, open: boolean): void {
     }
 }
 
+let initialModalQueryConsumed = false;
+
+/**
+ * On the first call after a full page load, strips a stale `?modal` from the URL
+ * so reload does not reopen modals (instance ids are remapped on boot).
+ * Later SPA navigations are left alone.
+ */
+export function consumeInitialModalQuery(router: ModalUrlRouter): void {
+    if (initialModalQueryConsumed) {
+        return;
+    }
+
+    initialModalQueryConsumed = true;
+
+    const routeIds = queryIdsFromRoute(router.currentRoute.value.query);
+
+    if (routeIds.length === 0) {
+        return;
+    }
+
+    openModalUrlIds.clear();
+    void router.replace({
+        query: buildQueryWithModalIds(router.currentRoute.value.query, [])
+    });
+}
+
 /** @internal */
 export function resetModalUrlOpenState(): void {
     openModalUrlIds.clear();
     pendingRouter = null;
     flushQueued = false;
     navGeneration = 0;
+    initialModalQueryConsumed = false;
 }
 
 function sortedOpenModalUrlIds(): number[] {

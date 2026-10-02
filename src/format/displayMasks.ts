@@ -4,6 +4,40 @@ function digitsOnly(value: string): string {
     return value.replace(/\D/g, "");
 }
 
+export function maskCpfDisplay(value: string): string {
+    const digits = digitsOnly(value);
+
+    if (digits.length !== 11) {
+        return value.trim() ? "***" : "—";
+    }
+
+    return `***.***.***-${digits.slice(-2)}`;
+}
+
+export function maskCnpjDisplay(value: string): string {
+    const digits = digitsOnly(value);
+
+    if (digits.length !== 14) {
+        return value.trim() ? "***" : "—";
+    }
+
+    return `**.***.***/****-${digits.slice(-2)}`;
+}
+
+export function maskDocumentoDisplay(value: string): string {
+    const digits = digitsOnly(value);
+
+    if (digits.length === 11) {
+        return maskCpfDisplay(digits);
+    }
+
+    if (digits.length === 14) {
+        return maskCnpjDisplay(digits);
+    }
+
+    return value.trim() ? "***" : "—";
+}
+
 export function formatCpfDisplay(value: string): string {
     const digits = digitsOnly(value);
 
