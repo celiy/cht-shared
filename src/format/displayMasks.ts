@@ -1,9 +1,24 @@
+/**
+ * Display masks
+ * This file is used to format display masks.
+ */
+
 export type TableCellMaskFormat = "documento" | "cpf" | "cnpj" | "phone" | "cep";
 
+/**
+ * Digits only
+ * @param {string} value The value to get the digits from.
+ * @returns {string} The digits.
+ */
 function digitsOnly(value: string): string {
     return value.replace(/\D/g, "");
 }
 
+/**
+ * Mask cpf display
+ * @param {string} value The value to mask.
+ * @returns {string} The masked value.
+ */
 export function maskCpfDisplay(value: string): string {
     const digits = digitsOnly(value);
 
@@ -14,6 +29,11 @@ export function maskCpfDisplay(value: string): string {
     return `***.***.***-${digits.slice(-2)}`;
 }
 
+/**
+ * Mask cnpj display
+ * @param {string} value The value to mask.
+ * @returns {string} The masked value.
+ */
 export function maskCnpjDisplay(value: string): string {
     const digits = digitsOnly(value);
 
@@ -24,6 +44,11 @@ export function maskCnpjDisplay(value: string): string {
     return `**.***.***/****-${digits.slice(-2)}`;
 }
 
+/**
+ * Mask documento display
+ * @param {string} value The value to mask.
+ * @returns {string} The masked value.
+ */
 export function maskDocumentoDisplay(value: string): string {
     const digits = digitsOnly(value);
 
@@ -38,6 +63,11 @@ export function maskDocumentoDisplay(value: string): string {
     return value.trim() ? "***" : "—";
 }
 
+/**
+ * Format cpf display
+ * @param {string} value The value to format.
+ * @returns {string} The formatted value.
+ */
 export function formatCpfDisplay(value: string): string {
     const digits = digitsOnly(value);
 
@@ -50,6 +80,11 @@ export function formatCpfDisplay(value: string): string {
     return digits.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
 }
 
+/**
+ * Format cnpj display
+ * @param {string} value The value to format.
+ * @returns {string} The formatted value.
+ */
 export function formatCnpjDisplay(value: string): string {
     const digits = digitsOnly(value);
 
@@ -62,7 +97,11 @@ export function formatCnpjDisplay(value: string): string {
     return digits.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, "$1.$2.$3/$4-$5");
 }
 
-/** CPF (11) or CNPJ (14), same rules as document inputs. */
+/**
+ * Format documento display
+ * @param {string} value The value to format.
+ * @returns {string} The formatted value.
+ */
 export function formatDocumentoDisplay(value: string): string {
     const digits = digitsOnly(value);
 
@@ -79,7 +118,11 @@ export function formatDocumentoDisplay(value: string): string {
     return trimmed || "—";
 }
 
-/** Brazilian phone; matches Input mask `(##) #########`. */
+/**
+ * Format phone display
+ * @param {string} value The value to format.
+ * @returns {string} The formatted value.
+ */
 export function formatPhoneDisplay(value: string): string {
     const digits = digitsOnly(value);
 
@@ -96,6 +139,11 @@ export function formatPhoneDisplay(value: string): string {
     return trimmed || "—";
 }
 
+/**
+ * Format cep display
+ * @param {string} value The value to format.
+ * @returns {string} The formatted value.
+ */
 export function formatCepDisplay(value: string): string {
     const digits = digitsOnly(value);
 
@@ -118,6 +166,11 @@ const FIELD_MASK_BY_NAME: Record<string, TableCellMaskFormat> = {
     cep: "cep"
 };
 
+/**
+ * Table cell mask for field
+ * @param {string | undefined} field The field to get the mask for.
+ * @returns {TableCellMaskFormat | undefined} The mask.
+ */
 export function tableCellMaskForField(field: string | undefined): TableCellMaskFormat | undefined {
     if (!field) {
         return undefined;
@@ -126,6 +179,12 @@ export function tableCellMaskForField(field: string | undefined): TableCellMaskF
     return FIELD_MASK_BY_NAME[field];
 }
 
+/**
+ * Format table cell mask
+ * @param {string} value The value to format.
+ * @param {TableCellMaskFormat} format The format to use.
+ * @returns {string} The formatted value.
+ */
 export function formatTableCellMask(value: string, format: TableCellMaskFormat): string {
     switch (format) {
         case "documento":

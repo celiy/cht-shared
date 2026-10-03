@@ -1,4 +1,8 @@
-export default function getHighestZIndex() {
+/**
+ * Get highest z index
+ * This file is used to get the highest z index.
+ */
+export default function getHighestZIndex(): number {
     const visibleTags = [
         "div", "main", "header", "footer", "section", "article", "nav", "aside",
         "input", "textarea", "button", "select", "label", "span", "ul", "ol", "li",

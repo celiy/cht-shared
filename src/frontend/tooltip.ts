@@ -28,6 +28,11 @@ type TooltipTarget = HTMLElement & {
     _tooltipShowTimer?: number | null;
 };
 
+/**
+ * Create tooltip
+ * @param {string} maxWidth The max width of the tooltip.
+ * @returns {HTMLElement} The tooltip element.
+ */
 function createTooltip(maxWidth = "16rem"): HTMLElement {
     const el = document.createElement("div");
     el.setAttribute("role", "tooltip");
@@ -54,6 +59,11 @@ function createTooltip(maxWidth = "16rem"): HTMLElement {
     return el;
 }
 
+/**
+ * Normalize options
+ * @param {TooltipBinding} bindingValue The binding value.
+ * @returns {TooltipOptions} The normalized options.
+ */
 function normalizeOptions(bindingValue: TooltipBinding): TooltipOptions {
     if (typeof bindingValue === "string") {
         return {
@@ -76,6 +86,10 @@ function normalizeOptions(bindingValue: TooltipBinding): TooltipOptions {
     };
 }
 
+/**
+ * Set tooltip content
+ * @param {TooltipOptions} options The options.
+ */
 function setTooltipContent(options: TooltipOptions) {
     if (!tooltipEl) {
         return;
@@ -88,6 +102,11 @@ function setTooltipContent(options: TooltipOptions) {
     }
 }
 
+/**
+ * Show tooltip
+ * @param {HTMLElement} el The element to show the tooltip for.
+ * @param {TooltipOptions} options The options.
+ */
 function show(el: HTMLElement, options: TooltipOptions) {
     if (!options.content) {
         return;
@@ -139,12 +158,19 @@ function show(el: HTMLElement, options: TooltipOptions) {
     tooltipEl.style.top = `${top}px`;
 }
 
+/**
+ * Hide tooltip
+ */
 function hide() {
     if (tooltipEl) {
         tooltipEl.style.opacity = "0";
     }
 }
 
+/**
+ * Clear show timer
+ * @param {TooltipTarget} target The target.
+ */
 function clearShowTimer(target: TooltipTarget) {
     if (target._tooltipShowTimer == null) {
         return;
@@ -155,6 +181,11 @@ function clearShowTimer(target: TooltipTarget) {
 }
 
 export default {
+    /**
+     * Mounted
+     * @param {HTMLElement} el The element to mount the tooltip for.
+     * @param {DirectiveBinding<TooltipBinding>} binding The binding.
+     */
     mounted(el: HTMLElement, binding: DirectiveBinding<TooltipBinding>) {
         const target = el as TooltipTarget;
         target._tooltipOptions = normalizeOptions(binding.value ?? "");
@@ -186,11 +217,20 @@ export default {
         tooltipUsers += 1;
     },
 
+    /**
+     * Updated
+     * @param {HTMLElement} el The element to update the tooltip for.
+     * @param {DirectiveBinding<TooltipBinding>} binding The binding.
+     */
     updated(el: HTMLElement, binding: DirectiveBinding<TooltipBinding>) {
         const target = el as TooltipTarget;
         target._tooltipOptions = normalizeOptions(binding.value ?? "");
     },
 
+    /**
+     * Unmounted
+     * @param {HTMLElement} el The element to unmount the tooltip for.
+     */
     unmounted(el: HTMLElement) {
         const target = el as TooltipTarget;
         clearShowTimer(target);

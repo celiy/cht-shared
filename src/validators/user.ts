@@ -13,6 +13,11 @@ type CreateUserDTO = {
 
 type UpdateUserDTO = Partial<CreateUserDTO>;
 
+/**
+ * Validate an email field
+ * @param {string} email The email to validate.
+ * @returns {string | null} The error message or null when valid.
+ */
 function validateEmailField(email: string): string | null {
     if (typeof email !== "string" || email.trim().length === 0) {
         return "Email é obrigatório";
@@ -25,6 +30,11 @@ function validateEmailField(email: string): string | null {
     return null;
 }
 
+/**
+ * Validate a password field
+ * @param {string} password The password to validate.
+ * @returns {string | null} The error message or null when valid.
+ */
 function validatePasswordField(password: string): string | null {
     if (typeof password !== "string" || password.length === 0) {
         return "Senha é obrigatória";
@@ -43,6 +53,10 @@ function validatePasswordField(password: string): string | null {
  * the errorHandler of the backend responds in `error.fields`.
  */
 export function validateCreateUser(dto: Partial<CreateUserDTO>): ApiErrorFields | null {
+    /**
+     * The fields to validate
+     * @type {ApiErrorFields}
+     */
     const fields: ApiErrorFields = {};
 
     const nameError = validateName(dto.name ?? "");
@@ -70,6 +84,10 @@ export function validateCreateUser(dto: Partial<CreateUserDTO>): ApiErrorFields 
  * Validate the update user payload. Only validates fields that were sent.
  */
 export function validateUpdateUser(dto: UpdateUserDTO): ApiErrorFields | null {
+    /**
+     * The fields to validate
+     * @type {ApiErrorFields}
+     */
     const fields: ApiErrorFields = {};
 
     if (dto.name !== undefined) {

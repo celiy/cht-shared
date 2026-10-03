@@ -1,3 +1,6 @@
+/**
+ * Validate cpf
+ */
 export function validateCPF(cpf: string) {
     cpf = cpf.replace(/[^\d]+/g, "");
 
@@ -26,6 +29,9 @@ export function validateCPF(cpf: string) {
     return true;
 }
 
+/**
+ * Validate cnpj
+ */
 export function validateCNPJ(value: string | number | number[] = "") {
     const regexCNPJ = /^\d{2}.\d{3}.\d{3}\/\d{4}-\d{2}$/;
 
@@ -98,20 +104,33 @@ function validCalc(x: number, numbers: number[]) {
     return result > 9 ? 0 : result;
 }
 
+/**
+ * Match numbers
+ * @param {string | number | number[]} value The value to match numbers from.
+ * @returns {number[]} The matched numbers.
+ */
 function matchNumbers(value: string | number | number[] = '') {
     const match = value.toString().match(/\d/g);
 
     return Array.isArray(match) ? match.map(Number) : [];
 }
 
-/** True when the value has 14 digits (CNPJ length, formatted or not). */
+/**
+ * Check if the value is a CNPJ document
+ * @param {unknown} value The value to check.
+ * @returns {boolean} True if the value is a CNPJ document.
+ */
 export function isCnpjDocument(value: unknown): boolean {
     const digits = String(value ?? "").replace(/[^\d]+/g, "");
 
     return digits.length === 14;
 }
 
-/** Accepts a Brazilian CPF or CNPJ (digits or formatted). */
+/**
+ * Validate a Brazilian CPF or CNPJ
+ * @param {string} value The value to validate.
+ * @returns {boolean} True if the value is a valid Brazilian CPF or CNPJ.
+ */
 export function validateDocumento(value: string): boolean {
     if (typeof value !== "string") {
         return false;

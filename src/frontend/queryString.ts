@@ -1,6 +1,8 @@
 /**
  * Builds a query string from a key/value map, without a leading `?`.
  * Empty, null, and undefined values are skipped. Arrays are joined with commas.
+ * @param {Record<string, unknown>} params The parameters to build the query string from.
+ * @returns {string} The query string.
  */
 export function toQueryString(params: Record<string, unknown>): string {
     const parts: string[] = [];

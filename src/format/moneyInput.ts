@@ -1,5 +1,12 @@
 /**
+ * Money input
+ * This file is used to parse money input.
+ */
+
+/**
  * Parses monetary values from CHT money Input (digits-only = cents) or decimal strings using `.` or `,`.
+ * @param {unknown} value The value to parse.
+ * @returns {number | null} The parsed value.
  */
 export function parseMoneyInput(value: unknown): number | null {
     if (value === null || value === undefined) {
@@ -33,6 +40,8 @@ export function parseMoneyInput(value: unknown): number | null {
 
 /**
  * Parses amounts already stored in reais (API, list rows), not cent digits from money Input.
+ * @param {unknown} value The value to parse.
+ * @returns {number | null} The parsed value.
  */
 export function parseStoredMoneyAmount(value: unknown): number | null {
     if (value === null || value === undefined) {
@@ -58,6 +67,11 @@ export function parseStoredMoneyAmount(value: unknown): number | null {
     return Number.isFinite(amount) ? amount : null;
 }
 
+/**
+ * Parse money decimal string
+ * @param {string} raw The raw string to parse.
+ * @returns {number | null} The parsed value.
+ */
 function parseMoneyDecimalString(raw: string): number | null {
     let normalized = raw.replace(/\s/g, "").replace(/R\$/gi, "");
 
@@ -79,7 +93,11 @@ function parseMoneyDecimalString(raw: string): number | null {
     return Number.isFinite(amount) ? amount : null;
 }
 
-/** Encodes a monetary amount as digit-only cents for `Input` type `money`. */
+/**
+ * Encodes a monetary amount as digit-only cents for `Input` type `money`.
+ * @param {number} amount The amount to encode.
+ * @returns {string} The encoded value.
+ */
 export function moneyAmountToInputDigits(amount: number): string {
     if (!Number.isFinite(amount)) {
         return "";

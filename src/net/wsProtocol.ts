@@ -13,14 +13,29 @@ export type WsServerMessage =
 
 export type WsMessage = WsClientMessage | WsServerMessage;
 
+/**
+ * Check if a topic is valid for WebSocket
+ * @param {string} topic The topic to check.
+ * @returns {boolean} True if the topic is valid.
+ */
 export function isValidWsTopic(topic: string): boolean {
     return TOPIC_PATTERN.test(topic);
 }
 
+/**
+ * Check if a value is a record
+ * @param {unknown} value The value to check.
+ * @returns {boolean} True if the value is a record.
+ */
 function isRecord(value: unknown): value is Record<string, unknown> {
     return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
+/**
+ * Parse WebSocket message
+ * @param {string} raw The raw message to parse.
+ * @returns {WsMessage | null} The parsed message.
+ */
 export function parseWsMessage(raw: string): WsMessage | null {
     if (raw.length > WS_MAX_MESSAGE_BYTES) {
         return null;
@@ -86,10 +101,21 @@ export function parseWsMessage(raw: string): WsMessage | null {
     }
 }
 
+/**
+ * Serialize WebSocket message
+ * @param {WsMessage} message The message to serialize.
+ * @returns {string} The serialized message.
+ */
 export function serializeWsMessage(message: WsMessage): string {
     return JSON.stringify(message);
 }
 
+/**
+ * Convert HTTP base URL to WebSocket URL
+ * @param {string} httpBase The HTTP base URL to convert.
+ * @param {string} path The path to append to the URL.
+ * @returns {string} The converted WebSocket URL.
+ */
 export function httpBaseToWsUrl(httpBase: string, path = WS_DEFAULT_PATH): string {
     const url = new URL(httpBase);
     url.protocol = url.protocol === "https:" ? "wss:" : "ws:";

@@ -1,3 +1,8 @@
+/**
+ * Modal query
+ * This file is used to manage modal queries.
+ */
+
 export const MODAL_QUERY_PARAM = "modal";
 
 const registeredModalUrlIds = new Set<number>();
@@ -17,6 +22,7 @@ export function registerModalUrlInstance(): number {
 
 /**
  * Unregisters a Modal instance. Resets the id sequence when the registry is empty.
+ * @param {number} id The id of the modal instance to release.
  */
 export function releaseModalUrlInstance(id: number): void {
     registeredModalUrlIds.delete(id);
@@ -35,6 +41,8 @@ export function resetModalUrlIdAllocator(next = 1): void {
 
 /**
  * Parses the `modal` query value (`[1,2]`, `1,2`, or a single id).
+ * @param {string | null | undefined} raw The raw query value to parse.
+ * @returns {number[]} The parsed modal ids.
  */
 export function parseModalQueryParam(raw: string | null | undefined): number[] {
     if (raw === undefined || raw === null || raw === "") {
@@ -76,6 +84,8 @@ export function parseModalQueryParam(raw: string | null | undefined): number[] {
 
 /**
  * Serializes modal ids for the query string (`[1,2]`).
+ * @param {number[]} ids The modal ids to serialize.
+ * @returns {string} The serialized modal ids.
  */
 export function serializeModalQueryParam(ids: number[]): string {
     if (ids.length === 0) {
@@ -85,10 +95,22 @@ export function serializeModalQueryParam(ids: number[]): string {
     return `[${ids.join(",")}]`;
 }
 
+/**
+ * Modal query includes
+ * @param {number[]} ids The modal ids to check.
+ * @param {number} id The modal id to check.
+ * @returns {boolean} True if the modal id is included.
+ */
 export function modalQueryIncludes(ids: number[], id: number): boolean {
     return ids.includes(id);
 }
 
+/**
+ * Add modal to query
+ * @param {number[]} ids The modal ids to add.
+ * @param {number} id The modal id to add.
+ * @returns {number[]} The updated modal ids.
+ */
 export function addModalToQuery(ids: number[], id: number): number[] {
     if (ids.includes(id)) {
         return ids;
@@ -97,6 +119,12 @@ export function addModalToQuery(ids: number[], id: number): number[] {
     return [...ids, id];
 }
 
+/**
+ * Remove modal from query
+ * @param {number[]} ids The modal ids to remove.
+ * @param {number} id The modal id to remove.
+ * @returns {number[]} The updated modal ids.
+ */
 export function removeModalFromQuery(ids: number[], id: number): number[] {
     return ids.filter((entry) => entry !== id);
 }
@@ -106,14 +134,17 @@ let pendingRouter: ModalUrlRouter | null = null;
 let flushQueued = false;
 let navGeneration = 0;
 
-export type ModalUrlRouter = {
-    push: (to: { query: Record<string, unknown> }) => Promise<unknown>;
-    replace: (to: { query: Record<string, unknown> }) => Promise<unknown>;
-    currentRoute: { value: { query: Record<string, unknown> } };
-};
+/**
+ * Modal url router
+ * @param {Record<string, unknown>} query The query to push.
+ * @returns {Promise<unknown>} The promise.
+ */
+export type ModalUrlRouter = { push: (to: { query: Record<string, unknown> }) => Promise<unknown>; replace: (to: { query: Record<string, unknown> }) => Promise<unknown>; currentRoute: { value: { query: Record<string, unknown> } }; };
 
 /**
  * Tracks which modal instances are open so URL sync can batch simultaneous opens.
+ * @param {number} id The modal id to track.
+ * @param {boolean} open The open state of the modal.
  */
 export function trackModalUrlOpenState(id: number, open: boolean): void {
     if (open) {
@@ -158,10 +189,19 @@ export function resetModalUrlOpenState(): void {
     initialModalQueryConsumed = false;
 }
 
+/**
+ * Sorted open modal url ids
+ * @returns {number[]} The sorted open modal url ids.
+ */
 function sortedOpenModalUrlIds(): number[] {
     return [...openModalUrlIds].sort((a, b) => a - b);
 }
 
+/**
+ * Query ids from route
+ * @param {Record<string, unknown>} query The query to get the ids from.
+ * @returns {number[]} The ids from the route.
+ */
 function queryIdsFromRoute(query: Record<string, unknown>): number[] {
     const raw = query[MODAL_QUERY_PARAM];
     const text = Array.isArray(raw) ? raw[0] : raw;
@@ -169,6 +209,12 @@ function queryIdsFromRoute(query: Record<string, unknown>): number[] {
     return parseModalQueryParam(typeof text === "string" ? text : undefined);
 }
 
+/**
+ * Build query with modal ids
+ * @param {Record<string, unknown>} base The base query.
+ * @param {number[]} ids The modal ids to build the query with.
+ * @returns {Record<string, unknown>} The built query.
+ */
 function buildQueryWithModalIds(
     base: Record<string, unknown>,
     ids: number[]
@@ -184,6 +230,12 @@ function buildQueryWithModalIds(
     return query;
 }
 
+/**
+ * Modal id stacks equal
+ * @param {number[]} a The first modal id stack.
+ * @param {number[]} b The second modal id stack.
+ * @returns {boolean} True if the modal id stacks are equal.
+ */
 function modalIdStacksEqual(a: number[], b: number[]): boolean {
     if (a.length !== b.length) {
         return false;
@@ -192,6 +244,12 @@ function modalIdStacksEqual(a: number[], b: number[]): boolean {
     return a.every((value, index) => value === b[index]);
 }
 
+/**
+ * Should push for stack grow
+ * @param {number[]} routeIds The route ids.
+ * @param {number[]} desired The desired modal ids.
+ * @returns {boolean} True if the stack should be pushed.
+ */
 function shouldPushForStackGrow(routeIds: number[], desired: number[]): boolean {
     if (desired.length === 0 || desired.length <= routeIds.length) {
         return false;
@@ -208,6 +266,7 @@ function shouldPushForStackGrow(routeIds: number[], desired: number[]): boolean 
 
 /**
  * Coalesces modal open/close into a single router update (fixes simultaneous opens).
+ * @param {ModalUrlRouter} router The router to schedule the modal url query sync for.
  */
 export function scheduleModalUrlQuerySync(router: ModalUrlRouter): void {
     pendingRouter = router;
@@ -223,6 +282,10 @@ export function scheduleModalUrlQuerySync(router: ModalUrlRouter): void {
     });
 }
 
+/**
+ * Flush modal url query sync
+ * @returns {Promise<void>} The promise.
+ */
 async function flushModalUrlQuerySync(): Promise<void> {
     const router = pendingRouter;
 

@@ -7,6 +7,9 @@ export const NAME_REGEX = /^[\p{L} .'-]+$/u;
 /**
  * Validates a person's name (letters, spaces, dots, apostrophes and hyphens).
  * Returns an error message or null when valid.
+ * @param {string} name The name to validate.
+ * @param {boolean} required True if the name is required.
+ * @returns {string | null} The error message or null when valid.
  */
 export function validateName(name: string, required = true): string | null {
     if (typeof name !== "string" || name.trim().length === 0) {
@@ -30,6 +33,13 @@ export function validateName(name: string, required = true): string | null {
     return null;
 }
 
+/**
+ * Collect name error
+ * @param {ApiErrorFields} fields The fields to collect the error.
+ * @param {string | undefined} name The name to validate.
+ * @param {string} key The key of the name.
+ * @returns {void}
+ */
 export function collectNameError(
     fields: ApiErrorFields,
     name: string | undefined,

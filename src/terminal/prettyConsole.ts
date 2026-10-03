@@ -4,6 +4,11 @@ export type PrintSegment = {
     bg?: string;
 };
 
+/**
+ * Stringify a segment
+ * @param {unknown} value The value to stringify.
+ * @returns {string} The stringified value.
+ */
 function stringifySegment(value: unknown): string {
     if (typeof value === "string") {
         return value;

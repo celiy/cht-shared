@@ -8,6 +8,11 @@ type LoginDTO = {
     empresaId?: number;
 };
 
+/**
+ * Validate email field
+ * @param {string} email The email to validate.
+ * @returns {string | null} The error message or null if the email is valid.
+ */
 function validateEmailField(email: string): string | null {
     if (typeof email !== "string" || email.trim().length === 0) {
         return "Email é obrigatório";
@@ -20,6 +25,11 @@ function validateEmailField(email: string): string | null {
     return null;
 }
 
+/**
+ * Validate password field
+ * @param {string} password The password to validate.
+ * @returns {string | null} The error message or null if the password is valid.
+ */
 function validatePasswordField(password: string): string | null {
     if (typeof password !== "string" || password.length === 0) {
         return "Senha é obrigatória";
@@ -31,6 +41,8 @@ function validatePasswordField(password: string): string | null {
 /**
  * Validate login payload. Returns field errors or null when valid.
  * Accepts `senha` (TCC/Mecarvit) or `password` (legacy).
+ * @param {Partial<LoginDTO>} dto The login payload to validate.
+ * @returns {ApiErrorFields | null} The field errors or null when valid.
  */
 export function validateLogin(dto: Partial<LoginDTO>): ApiErrorFields | null {
     const fields: ApiErrorFields = {};

@@ -22,10 +22,20 @@ const PAGAMENTO_TIPOS = new Set([
     "outro"
 ]);
 
+/**
+ * Check if a value is blank
+ * @param {unknown} value The value to check.
+ * @returns {boolean} True if the value is blank.
+ */
 function isBlank(value: unknown): boolean {
     return typeof value !== "string" || value.trim().length === 0;
 }
 
+/**
+ * Convert a value to a record
+ * @param {unknown} value The value to convert.
+ * @returns {Record<string, unknown> | null} The converted record.
+ */
 function asRecord(value: unknown): Record<string, unknown> | null {
     if (value !== null && typeof value === "object" && !Array.isArray(value)) {
         return value as Record<string, unknown>;
@@ -34,6 +44,12 @@ function asRecord(value: unknown): Record<string, unknown> | null {
     return null;
 }
 
+/**
+ * Validate an email
+ * @param {string} email The email to validate.
+ * @param {boolean} required True if the email is required.
+ * @returns {string | null} The error message or null if the email is valid.
+ */
 function emailError(email: string, required = true): string | null {
     if (isBlank(email)) {
         return required ? "Email é obrigatório" : null;
@@ -46,6 +62,12 @@ function emailError(email: string, required = true): string | null {
     return null;
 }
 
+/**
+ * Validate a password
+ * @param {string} senha The password to validate.
+ * @param {boolean} required True if the password is required.
+ * @returns {string | null} The error message or null if the password is valid.
+ */
 function senhaError(senha: string, required = true): string | null {
     if (typeof senha !== "string" || senha.length === 0) {
         return required ? "Senha é obrigatória" : null;
@@ -58,6 +80,12 @@ function senhaError(senha: string, required = true): string | null {
     return null;
 }
 
+/**
+ * Validate a CPF
+ * @param {string} cpf The CPF to validate.
+ * @param {boolean} required True if the CPF is required.
+ * @returns {string | null} The error message or null if the CPF is valid.
+ */
 function cpfError(cpf: string, required = true): string | null {
     if (isBlank(cpf)) {
         return required ? "CPF é obrigatório" : null;
@@ -70,6 +98,12 @@ function cpfError(cpf: string, required = true): string | null {
     return null;
 }
 
+/**
+ * Validate a document
+ * @param {string} documento The document to validate.
+ * @param {boolean} required True if the document is required.
+ * @returns {string | null} The error message or null if the document is valid.
+ */
 function documentoError(documento: string, required = true): string | null {
     if (isBlank(documento)) {
         return required ? "Documento é obrigatório" : null;
@@ -82,6 +116,12 @@ function documentoError(documento: string, required = true): string | null {
     return null;
 }
 
+/**
+ * Validate a level of access
+ * @param {unknown} value The value to validate.
+ * @param {boolean} allowZero True if the level of access is allowed to be zero.
+ * @returns {string | null} The error message or null if the level of access is valid.
+ */
 function nivelAcessoError(value: unknown, { allowZero }: { allowZero: boolean }): string | null {
     if (value === undefined || value === null || value === "") {
         return "nivelAcesso é obrigatório";
@@ -116,6 +156,13 @@ function nivelAcessoError(value: unknown, { allowZero }: { allowZero: boolean })
     return null;
 }
 
+/**
+ * Validate a positive integer
+ * @param {unknown} value The value to validate.
+ * @param {string} label The label of the value.
+ * @param {boolean} required True if the value is required.
+ * @returns {string | null} The error message or null if the value is valid.
+ */
 function positiveIntError(value: unknown, label: string, required = true): string | null {
     if (value === undefined || value === null || value === "") {
         return required ? `${label} é obrigatório` : null;
@@ -130,6 +177,13 @@ function positiveIntError(value: unknown, label: string, required = true): strin
     return null;
 }
 
+/**
+ * Validate a money value
+ * @param {unknown} value The value to validate.
+ * @param {string} label The label of the value.
+ * @param {boolean} required True if the value is required.
+ * @returns {string | null} The error message or null if the value is valid.
+ */
 function moneyError(value: unknown, label: string, required = true): string | null {
     if (value === undefined || value === null || value === "") {
         return required ? `${label} é obrigatório` : null;
@@ -150,6 +204,10 @@ function moneyError(value: unknown, label: string, required = true): string | nu
  *
  * Rejects values that `Date` would silently normalize (2026-02-31 becoming
  * 03-03), so a typo never reaches the database as a different day.
+ * @param {unknown} value The value to validate.
+ * @param {string} label The label of the value.
+ * @param {boolean} required True if the value is required.
+ * @returns {string | null} The error message or null if the value is valid.
  */
 function dateError(value: unknown, label: string, required = false): string | null {
     if (value === undefined || value === null || value === "") {
@@ -171,14 +229,30 @@ function dateError(value: unknown, label: string, required = false): string | nu
     return null;
 }
 
+/**
+ * Check if a value is too long
+ * @param {string} value The value to check.
+ * @param {number} max The maximum length.
+ * @returns {boolean} True if the value is too long.
+ */
 function tooLong(value: string, max = TEXT_MAX): boolean {
     return value.length > max;
 }
 
+/**
+ * Convert empty fields to null
+ * @param {ApiErrorFields} fields The fields to convert.
+ * @returns {ApiErrorFields | null} The converted fields.
+ */
 function emptyToNull(fields: ApiErrorFields): ApiErrorFields | null {
     return Object.keys(fields).length > 0 ? fields : null;
 }
 
+/**
+ * Validate a registration
+ * @param {Record<string, unknown>} dto The data to validate.
+ * @returns {ApiErrorFields | null} The field errors or null when valid.
+ */
 export function validateCadastro(dto: Record<string, unknown>): ApiErrorFields | null {
     const fields: ApiErrorFields = {};
     const empresa = asRecord(dto.empresa);
@@ -223,6 +297,13 @@ export function validateCadastro(dto: Record<string, unknown>): ApiErrorFields |
     return emptyToNull(fields);
 }
 
+/**
+ * Validate a user creation
+ * @param {Record<string, unknown>} dto The data to validate.
+ * @param {Object} options The options to validate.
+ * @param {boolean} options.senhaRequired True if the password is required.
+ * @returns {ApiErrorFields | null} The field errors or null when valid.
+ */
 export function validateCreateUsuario(
     dto: Record<string, unknown>,
     options: { senhaRequired: boolean }
@@ -263,6 +344,11 @@ export function validateCreateUsuario(
     return emptyToNull(fields);
 }
 
+/**
+ * Validate a user update
+ * @param {Record<string, unknown>} dto The data to validate.
+ * @returns {ApiErrorFields | null} The field errors or null when valid.
+ */
 export function validateUpdateUsuario(dto: Record<string, unknown>): ApiErrorFields | null {
     const fields: ApiErrorFields = {};
 
@@ -313,6 +399,11 @@ export function validateUpdateUsuario(dto: Record<string, unknown>): ApiErrorFie
     return emptyToNull(fields);
 }
 
+/**
+ * Validate a password change
+ * @param {Record<string, unknown>} dto The data to validate.
+ * @returns {ApiErrorFields | null} The field errors or null when valid.
+ */
 export function validateChangeSenha(dto: Record<string, unknown>): ApiErrorFields | null {
     const fields: ApiErrorFields = {};
     const atual = senhaError(String(dto.senhaAtual ?? ""));
@@ -329,6 +420,14 @@ export function validateChangeSenha(dto: Record<string, unknown>): ApiErrorField
     return emptyToNull(fields);
 }
 
+/**
+ * Validate a cargo
+ * @param {Record<string, unknown>} dto The data to validate.
+ * @param {Object} options The options to validate.
+ * @param {boolean} options.partial True if the cargo is partial.
+ * @param {boolean} options.allowZero True if the cargo is allowed to be zero.
+ * @returns {ApiErrorFields | null} The field errors or null when valid.
+ */
 export function validateCargo(
     dto: Record<string, unknown>,
     options: { partial: boolean; allowZero: boolean }
@@ -354,6 +453,12 @@ export function validateCargo(
     return emptyToNull(fields);
 }
 
+/**
+ * Validate a empresa
+ * @param {Record<string, unknown>} dto The data to validate.
+ * @param {boolean} partial True if the empresa is partial.
+ * @returns {ApiErrorFields | null} The field errors or null when valid.
+ */
 export function validateEmpresa(dto: Record<string, unknown>, partial: boolean): ApiErrorFields | null {
     const fields: ApiErrorFields = {};
 
@@ -368,6 +473,12 @@ export function validateEmpresa(dto: Record<string, unknown>, partial: boolean):
     return emptyToNull(fields);
 }
 
+/**
+ * Validate an address
+ * @param {Record<string, unknown>} dto The data to validate.
+ * @param {string} prefix The prefix of the address.
+ * @returns {ApiErrorFields} The field errors.
+ */
 export function validateEndereco(
     dto: Record<string, unknown>,
     prefix: string
@@ -401,6 +512,14 @@ export function validateEndereco(
     return fields;
 }
 
+/**
+ * Validate a vehicle
+ * @param {Record<string, unknown>} dto The data to validate.
+ * @param {Object} options The options to validate.
+ * @param {boolean} options.partial True if the vehicle is partial.
+ * @param {boolean} options.requireCliente True if the vehicle requires a client.
+ * @returns {ApiErrorFields | null} The field errors or null when valid.
+ */
 export function validateVeiculo(
     dto: Record<string, unknown>,
     options: { partial: boolean; requireCliente: boolean }
@@ -442,6 +561,13 @@ export function validateVeiculo(
     return emptyToNull(fields);
 }
 
+/**
+ * Validate a client
+ * @param {Record<string, unknown>} dto The data to validate.
+ * @param {Object} options The options to validate.
+ * @param {boolean} options.partial True if the client is partial.
+ * @returns {ApiErrorFields | null} The field errors or null when valid.
+ */
 export function validateCliente(
     dto: Record<string, unknown>,
     options: { partial: boolean }
@@ -527,6 +653,12 @@ export function validateCliente(
     return emptyToNull(fields);
 }
 
+/**
+ * Validate a service
+ * @param {Record<string, unknown>} dto The data to validate.
+ * @param {boolean} partial True if the service is partial.
+ * @returns {ApiErrorFields | null} The field errors or null when valid.
+ */
 export function validateServico(dto: Record<string, unknown>, partial: boolean): ApiErrorFields | null {
     const fields: ApiErrorFields = {};
 
@@ -541,6 +673,12 @@ export function validateServico(dto: Record<string, unknown>, partial: boolean):
     return emptyToNull(fields);
 }
 
+/**
+ * Validate an item service
+ * @param {Record<string, unknown>} dto The data to validate.
+ * @param {string} prefix The prefix of the item service.
+ * @returns {ApiErrorFields} The field errors.
+ */
 export function validateItemServico(
     dto: Record<string, unknown>,
     prefix: string
@@ -588,6 +726,12 @@ export function validateItemServico(
     return fields;
 }
 
+/**
+ * Validate a payment
+ * @param {Record<string, unknown>} dto The data to validate.
+ * @param {string} prefix The prefix of the payment.
+ * @returns {ApiErrorFields} The field errors.
+ */
 export function validatePagamento(
     dto: Record<string, unknown>,
     prefix: string
@@ -611,6 +755,13 @@ export function validatePagamento(
     return fields;
 }
 
+/**
+ * Validate an order service
+ * @param {Record<string, unknown>} dto The data to validate.
+ * @param {Object} options The options to validate.
+ * @param {boolean} options.partial True if the order service is partial.
+ * @returns {ApiErrorFields | null} The field errors or null when valid.
+ */
 export function validateOrdemServico(
     dto: Record<string, unknown>,
     options: { partial: boolean }
@@ -689,6 +840,13 @@ export function validateOrdemServico(
     return emptyToNull(fields);
 }
 
+/**
+ * Validate a registration entry or exit
+ * @param {Record<string, unknown>} dto The data to validate.
+ * @param {Object} options The options to validate.
+ * @param {boolean} options.partial True if the registration entry or exit is partial.
+ * @returns {ApiErrorFields | null} The field errors or null when valid.
+ */
 export function validateRegEntradaSaida(
     dto: Record<string, unknown>,
     options: { partial: boolean }
@@ -743,6 +901,11 @@ export function validateRegEntradaSaida(
     return emptyToNull(fields);
 }
 
+/**
+ * Convert a value to digits only
+ * @param {string} value The value to convert.
+ * @returns {string} The converted value.
+ */
 export function digitsOnly(value: string): string {
     return value.replace(/[^\d]+/g, "");
 }

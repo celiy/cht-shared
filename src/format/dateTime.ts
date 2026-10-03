@@ -1,3 +1,13 @@
+/**
+ * Date time
+ * This file is used to format date and time.
+ */
+
+/**
+ * Date millis
+ * @param {unknown} value The value to get the millis from.
+ * @returns {number | null} The millis.
+ */
 function dateMillis(value: unknown): number | null {
     if (value === null || value === undefined || value === "") {
         return null;
@@ -9,7 +19,11 @@ function dateMillis(value: unknown): number | null {
     return Number.isNaN(millis) ? null : millis;
 }
 
-/** Most recent of create/update timestamps (update wins when strictly later). */
+/**
+ * Most recent of create/update timestamps (update wins when strictly later).
+ * @param {unknown[]} values The values to get the latest date from.
+ * @returns {unknown} The latest date.
+ */
 export function latestDateValue(...values: unknown[]): unknown {
     let latest: unknown;
     let latestMillis = Number.NEGATIVE_INFINITY;
@@ -28,7 +42,11 @@ export function latestDateValue(...values: unknown[]): unknown {
     return latest;
 }
 
-/** `dd/mm/aaaa - hh:mm` for payment timestamps and similar UI. */
+/**
+ * Format date time br
+ * @param {unknown} value The value to format.
+ * @returns {string} The formatted date time.
+ */
 export function formatDateTimeBr(value: unknown): string {
     if (value === null || value === undefined || value === "") {
         return "—";
@@ -49,7 +67,11 @@ export function formatDateTimeBr(value: unknown): string {
     return `${day}/${month}/${year} - ${hours}:${minutes}`;
 }
 
-/** `yyyy-mm-dd` for HTML date inputs. */
+/**
+ * Format date input value
+ * @param {unknown} value The value to format.
+ * @returns {string} The formatted date input value.
+ */
 export function formatDateInputValue(value: unknown): string {
     if (value === null || value === undefined || value === "") {
         return "";
@@ -69,7 +91,10 @@ export function formatDateInputValue(value: unknown): string {
 }
 
 /**
- * `dd/mm/aaaa` for date-only values, anchored at UTC.
+ * Format date br
+ * @param {unknown} value The value to format.
+ * @returns {string} The formatted date.
+ *
  *
  * Date-only fields are stored as UTC midnight because that is what
  * `new Date("aaaa-mm-dd")` produces. Reading them back with the local getters
