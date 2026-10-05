@@ -36,6 +36,7 @@ type TooltipTarget = HTMLElement & {
 function createTooltip(maxWidth = "16rem"): HTMLElement {
     const el = document.createElement("div");
     el.setAttribute("role", "tooltip");
+    el.classList.add("tooltip-background");
     el.style.cssText = `
         position: fixed;
         z-index: 100000;
@@ -44,7 +45,6 @@ function createTooltip(maxWidth = "16rem"): HTMLElement {
         font-size: 0.8125rem;
         line-height: 1.25;
         color: var(--color-secondary-foreground, #fff);
-        background: var(--color-secondary, #333);
         border: 1px solid var(--color-border);
         border-radius: 0.375rem;
         pointer-events: none;
