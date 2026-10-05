@@ -1,3 +1,8 @@
+/**
+ * The keyboard helpers module
+ * This module is responsible for key matching, typing-target detection, and input kbd sequences of the project.
+ */
+
 const TYPING_TAGS = new Set(["INPUT", "TEXTAREA", "SELECT"]);
 
 const openModalStack: symbol[] = [];
@@ -49,6 +54,74 @@ export function matchesKey(event: KeyboardEvent, key: string): boolean {
     }
 
     return event.key.toLowerCase() === key.toLowerCase();
+}
+
+/**
+ * Extracts key names from an Input `kbd` prop.
+ *
+ * @param kbd Prop value
+ * @returns Key names in array order, skipping empty entries
+ */
+export function kbdKeyNames(kbd: readonly { key?: string }[] | undefined | null): string[] {
+    if (!Array.isArray(kbd)) {
+        return [];
+    }
+
+    const names: string[] = [];
+
+    for (const item of kbd) {
+        if (item && typeof item.key === "string" && item.key.length > 0) {
+            names.push(item.key);
+        }
+    }
+
+    return names;
+}
+
+/**
+ * Advances a sequential shortcut. Completing the last key returns `complete: true`
+ * and resets `step` to 0. A mismatch resets; if that same event matches the first
+ * key, the sequence restarts at step 1.
+ *
+ * @param step Current index in `keys`
+ * @param event Keyboard event to inspect
+ * @param keys Expected key names in order
+ */
+export function advanceKbdSequence(
+    step: number,
+    event: KeyboardEvent,
+    keys: readonly string[]
+): { step: number; complete: boolean } {
+    if (keys.length === 0) {
+        return { step: 0, complete: false };
+    }
+
+    const safeStep = step > 0 && step < keys.length ? step : 0;
+    const expected = keys[safeStep];
+
+    if (expected != null && matchesKey(event, expected)) {
+        const next = safeStep + 1;
+
+        if (next >= keys.length) {
+            return { step: 0, complete: true };
+        }
+
+        return { step: next, complete: false };
+    }
+
+    if (safeStep !== 0) {
+        const first = keys[0];
+
+        if (first != null && matchesKey(event, first)) {
+            if (keys.length === 1) {
+                return { step: 0, complete: true };
+            }
+
+            return { step: 1, complete: false };
+        }
+    }
+
+    return { step: 0, complete: false };
 }
 
 /**

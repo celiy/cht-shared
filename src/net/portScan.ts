@@ -1,3 +1,8 @@
+/**
+ * The API port scan module
+ * This module is responsible for parsing and aligning loopback API URLs of the project.
+ */
+
 export const CHT_API_URL_PREFIX = "CHT_API_URL=";
 export const DEFAULT_API_PORT_SCAN_LIMIT = 20;
 
@@ -47,7 +52,12 @@ export function isLoopbackHostname(hostname: string): boolean {
      * @param {string} hostname The hostname to check.
      * @returns {boolean} True if the hostname is a loopback hostname.
      */
-    return hostname === "localhost" || hostname === "127.0.0.1" || hostname === "::1" || hostname === "[::1]";
+    return (
+        hostname === "localhost" ||
+        hostname === "127.0.0.1" ||
+        hostname === "::1" ||
+        hostname === "[::1]"
+    );
 }
 
 /**
@@ -105,10 +115,13 @@ export function replaceUrlPort(value: string, port: number): string {
  * @returns {string} The picked api base url.
  */
 export function pickApiBaseUrl(
-    config: {
-        api?: Partial<Record<ApiTarget, string>>;
-        apiBaseUrl?: string;
-    } | null | undefined,
+    config:
+        | {
+              api?: Partial<Record<ApiTarget, string>>;
+              apiBaseUrl?: string;
+          }
+        | null
+        | undefined,
     target: ApiTarget,
     fallback = "http://127.0.0.1:3001"
 ): string {
@@ -140,7 +153,12 @@ export function resolveApiTarget(options: {
 }): ApiTarget {
     const override = options.override?.trim();
 
-    if (override === "dev" || override === "web" || override === "electron" || override === "mobile") {
+    if (
+        override === "dev" ||
+        override === "web" ||
+        override === "electron" ||
+        override === "mobile"
+    ) {
         return override;
     }
 
