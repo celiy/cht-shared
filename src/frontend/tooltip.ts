@@ -6,6 +6,7 @@ type DirectiveBinding<T> = {
 
 let tooltipEl: HTMLElement | null = null;
 let tooltipUsers = 0;
+let pendingTarget: { _tooltipShowTimer?: number | null } | null = null;
 
 type TooltipPlacement = "top" | "bottom" | "left" | "right" | "center";
 type TooltipBinding = string | TooltipOptions;
@@ -168,6 +169,19 @@ function hide() {
 }
 
 /**
+ * Hides the tooltip on scroll. On touch devices there is no `mouseleave` after a tap,
+ * so without this the tooltip would stay on screen while the page moves under it.
+ */
+function onScroll() {
+    if (pendingTarget?._tooltipShowTimer != null) {
+        window.clearTimeout(pendingTarget._tooltipShowTimer);
+        pendingTarget._tooltipShowTimer = null;
+    }
+
+    hide();
+}
+
+/**
  * Clear show timer
  * @param {TooltipTarget} target The target.
  */
@@ -191,6 +205,7 @@ export default {
         target._tooltipOptions = normalizeOptions(binding.value ?? "");
 
         target._tooltipMouseEnter = () => {
+            pendingTarget = target;
             clearShowTimer(target);
             const options = target._tooltipOptions ?? normalizeOptions("");
             const delay = resolveShowDelay(options.delay);
@@ -214,6 +229,11 @@ export default {
 
         target.addEventListener("mouseenter", target._tooltipMouseEnter);
         target.addEventListener("mouseleave", target._tooltipMouseLeave);
+
+        if (tooltipUsers === 0) {
+            window.addEventListener("scroll", onScroll, { capture: true, passive: true });
+        }
+
         tooltipUsers += 1;
     },
 
@@ -244,6 +264,10 @@ export default {
         }
 
         tooltipUsers = Math.max(0, tooltipUsers - 1);
+
+        if (tooltipUsers === 0) {
+            window.removeEventListener("scroll", onScroll, true);
+        }
 
         if (tooltipUsers > 0) {
             hide();
